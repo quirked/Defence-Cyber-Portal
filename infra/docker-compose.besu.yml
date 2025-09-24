@@ -1,0 +1,143 @@
+services:
+  besu-validator-1:
+    image: hyperledger/besu:latest
+    container_name: besu-validator-1
+    restart: unless-stopped
+    networks:
+      besu-net:
+        ipv4_address: 172.25.0.11
+    volumes:
+      - ./besu/networkFiles/genesis.json:/config/genesis.json:ro
+      - ./besu/validators/validator1:/keys:ro
+      - besu-v1-data:/data
+    command: >
+      --genesis-file=/config/genesis.json
+      --data-path=/data
+      --node-private-key-file=/keys/key
+      --p2p-host=172.25.0.11
+      --p2p-interface=0.0.0.0
+      --nat-method=NONE
+      --p2p-port=30303
+      --host-allowlist=*
+      --min-gas-price=0
+      --rpc-http-enabled=false
+
+  besu-validator-2:
+    image: hyperledger/besu:latest
+    container_name: besu-validator-2
+    restart: unless-stopped
+    networks:
+      besu-net:
+        ipv4_address: 172.25.0.12
+    volumes:
+      - ./besu/networkFiles/genesis.json:/config/genesis.json:ro
+      - ./besu/validators/validator2:/keys:ro
+      - besu-v2-data:/data
+    command: >
+      --genesis-file=/config/genesis.json
+      --data-path=/data
+      --node-private-key-file=/keys/key
+      --p2p-host=172.25.0.12
+      --p2p-interface=0.0.0.0
+      --nat-method=NONE
+      --p2p-port=30303
+      --bootnodes=enode://${VALIDATOR1_PUBKEY}@172.25.0.11:30303
+      --host-allowlist=*
+      --min-gas-price=0
+      --rpc-http-enabled=false
+
+  besu-validator-3:
+    image: hyperledger/besu:latest
+    container_name: besu-validator-3
+    restart: unless-stopped
+    networks:
+      besu-net:
+        ipv4_address: 172.25.0.13
+    volumes:
+      - ./besu/networkFiles/genesis.json:/config/genesis.json:ro
+      - ./besu/validators/validator3:/keys:ro
+      - besu-v3-data:/data
+    command: >
+      --genesis-file=/config/genesis.json
+      --data-path=/data
+      --node-private-key-file=/keys/key
+      --p2p-host=172.25.0.13
+      --p2p-interface=0.0.0.0
+      --nat-method=NONE
+      --p2p-port=30303
+      --bootnodes=enode://${VALIDATOR1_PUBKEY}@172.25.0.11:30303
+      --host-allowlist=*
+      --min-gas-price=0
+      --rpc-http-enabled=false
+
+  besu-validator-4:
+    image: hyperledger/besu:latest
+    container_name: besu-validator-4
+    restart: unless-stopped
+    networks:
+      besu-net:
+        ipv4_address: 172.25.0.14
+    volumes:
+      - ./besu/networkFiles/genesis.json:/config/genesis.json:ro
+      - ./besu/validators/validator4:/keys:ro
+      - besu-v4-data:/data
+    command: >
+      --genesis-file=/config/genesis.json
+      --data-path=/data
+      --node-private-key-file=/keys/key
+      --p2p-host=172.25.0.14
+      --p2p-interface=0.0.0.0
+      --nat-method=NONE
+      --p2p-port=30303
+      --bootnodes=enode://${VALIDATOR1_PUBKEY}@172.25.0.11:30303
+      --host-allowlist=*
+      --min-gas-price=0
+      --rpc-http-enabled=false
+
+  besu-rpc:
+    image: hyperledger/besu:latest
+    container_name: besu-rpc
+    restart: unless-stopped
+    networks:
+      besu-net:
+        ipv4_address: 172.25.0.15
+        aliases:
+          - besu-rpc
+    ports:
+      - "8545:8545"   # HTTP RPC
+      - "8546:8546"   # WS RPC (optional)
+    volumes:
+      - ./besu/networkFiles/genesis.json:/config/genesis.json:ro
+      - besu-rpc-data:/data
+    command: >
+      --genesis-file=/config/genesis.json
+      --data-path=/data
+      --p2p-host=172.25.0.15
+      --p2p-interface=0.0.0.0
+      --nat-method=NONE
+      --p2p-port=30303
+      --bootnodes=enode://${VALIDATOR1_PUBKEY}@172.25.0.11:30303
+      --rpc-http-enabled=true
+      --rpc-http-host=0.0.0.0
+      --rpc-http-port=8545
+      --rpc-http-cors-origins=*
+      --rpc-http-api=ETH,NET,IBFT,ADMIN,WEB3,TXPOOL
+      --rpc-ws-enabled=true
+      --rpc-ws-host=0.0.0.0
+      --rpc-ws-port=8546
+      --host-allowlist=*
+      --min-gas-price=0
+
+volumes:
+  besu-v1-data:
+  besu-v2-data:
+  besu-v3-data:
+  besu-v4-data:
+  besu-rpc-data:
+
+networks:
+  besu-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/24
